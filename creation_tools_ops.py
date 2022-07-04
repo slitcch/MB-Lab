@@ -113,6 +113,8 @@ def create_needed_directories(name=""):
 
 def set_data_directory(dir):
     global config_content
+    # Oh god, why do we have global state. This is terrible.
+    # Getting TypeError: 'NoneType' object does not support item assignment
     config_content["data_directory"] = dir
 
 def get_data_directory():
