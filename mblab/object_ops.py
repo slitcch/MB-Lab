@@ -305,6 +305,12 @@ def new_modifier(obj, name, modifier_type, parameters):
 ###############################################################################################################################
 # ARMATURE OPS
 
+# Type can be "IK",
+# Used by something to 
+
+def new_constraint(obj, bone_name, type):
+    return obj.pose.bones[bone_name].constraints.new(type)
+
 ###############################################################################################################################
 # SHAPEKEY OPS
 

@@ -25,6 +25,7 @@
 # MB-Lab Imports
 
 
+from dataclasses import dataclass
 import logging
 
 import time
@@ -109,21 +110,28 @@ gui_active_panel_third = None
 CY_Hshader_remove = []
 UN_shader_remove = []
 
+@dataclass
+class humanoid_settings:
+    character_identifier: str
+    use_muscle: bool
+    use_ik: bool
+
+
 # BEGIN
-def start_lab_session():
+def start_lab_session(settings: humanoid_settings):
     global mblab_humanoid
     global gui_status, gui_err_msg
 
     logger.info("Start_the lab session...")
     file_ops.configuration_done = None # See variable in the file for more details
     scn = bpy.context.scene
-    character_identifier = scn.mblab_character_name
+    character_identifier = settings.character_identifier
     rigging_type = "base"
-    if scn.mblab_use_ik:
+    if settings.use_ik:
         rigging_type = "ik"
-    if scn.mblab_use_muscle:
+    if settings.use_muscle:
         rigging_type = "muscle"
-    if scn.mblab_use_muscle and scn.mblab_use_ik:
+    if settings.use_muscle and settings.use_ik:
         rigging_type = "muscle_ik"
 
     lib_filepath = file_ops.get_blendlibrary_path()
@@ -711,7 +719,7 @@ bpy.types.Scene.mblab_use_cycles = bpy.props.BoolProperty(
 
 bpy.types.Scene.mblab_use_eevee = bpy.props.BoolProperty(
     name="Use EEVEE engine",
-    default=False,
+    default=True,
     update=set_eevee_render_engine,
     description="This is needed in order to use the skin editor and shaders")
 
@@ -2253,51 +2261,51 @@ class LoadBvh(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class CreateFaceRig(bpy.types.Operator):
-    bl_idname = "mbast.create_face_rig"
-    bl_label = "Create Face Rig"
-    bl_description = "Create the character's face Rig"
-    bl_context = 'objectmode'
-    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+# class CreateFaceRig(bpy.types.Operator):
+#     bl_idname = "mbast.create_face_rig"
+#     bl_label = "Create Face Rig"
+#     bl_description = "Create the character's face Rig"
+#     bl_context = 'objectmode'
+#     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
-    def execute(self, context):
-        mblab_shapekeys.update_expressions_data()
-        if mblab_shapekeys.model_type != "NONE":
-            obj = algorithms.get_active_body()
-            rc = facerig.setup_face_rig(obj)
-            if not rc:
-                self.report({'ERROR'},
-                            "Face Rig creation process failed")
-                return {'FINISHED'}
-            elif bpy.context.scene.mblab_facs_rig:
-                rc = facerig.setup_facs_rig(obj)
-                if not rc:
-                    self.report({'ERROR'},
-                                "FACS Rig creation process failed")
-                    return {'FINISHED'}
-        else:
-            self.report({'ERROR'},
-                        "Select finalized MB-Lab character to create face rig")
-        return {'FINISHED'}
+#     def execute(self, context):
+#         mblab_shapekeys.update_expressions_data()
+#         if mblab_shapekeys.model_type != "NONE":
+#             obj = algorithms.get_active_body()
+#             rc = facerig.setup_face_rig(obj)
+#             if not rc:
+#                 self.report({'ERROR'},
+#                             "Face Rig creation process failed")
+#                 return {'FINISHED'}
+#             elif bpy.context.scene.mblab_facs_rig:
+#                 rc = facerig.setup_facs_rig(obj)
+#                 if not rc:
+#                     self.report({'ERROR'},
+#                                 "FACS Rig creation process failed")
+#                     return {'FINISHED'}
+#         else:
+#             self.report({'ERROR'},
+#                         "Select finalized MB-Lab character to create face rig")
+#         return {'FINISHED'}
 
 
-class DeleteFaceRig(bpy.types.Operator):
-    bl_idname = "mbast.delete_face_rig"
-    bl_label = "Delete Face Rig"
-    bl_description = "Delete the character's face Rig"
-    bl_context = 'objectmode'
-    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+# class DeleteFaceRig(bpy.types.Operator):
+#     bl_idname = "mbast.delete_face_rig"
+#     bl_label = "Delete Face Rig"
+#     bl_description = "Delete the character's face Rig"
+#     bl_context = 'objectmode'
+#     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
-    def execute(self, context):
-        mblab_shapekeys.update_expressions_data()
-        obj = algorithms.get_active_object()
-        if not obj:
-            self.report({'ERROR'}, "Select Face Rig to delete")
-            return {'FINISHED'}
+#     def execute(self, context):
+#         mblab_shapekeys.update_expressions_data()
+#         obj = algorithms.get_active_object()
+#         if not obj:
+#             self.report({'ERROR'}, "Select Face Rig to delete")
+#             return {'FINISHED'}
 
-        if not facerig.delete_face_rig(obj):
-            self.report({'ERROR'}, "failed to delete face rig")
-        return {'FINISHED'}
+#         if not facerig.delete_face_rig(obj):
+#             self.report({'ERROR'}, "failed to delete face rig")
+#         return {'FINISHED'}
 
 # Add Limit Rotations Constraint
 class OBJECT_OT_humanoid_rot_limits(bpy.types.Operator):
@@ -6586,196 +6594,196 @@ class ButtonSaveVGroupsMuscleFile(bpy.types.Operator):
         vgroupscreator.save_current_vgroups_type('MUSCLES')
         return {'FINISHED'}
 
-classes = (
-    ButtonParametersOff,
-    ButtonParametersOn,
-    ButtonFaceRigOff,
-    ButtonFaceRigOn,
-    ButtonUtilitiesOff,
-    ButtonUtilitiesOn,
-    ButtonExpressionsOff,
-    ButtonExpressionOn,
-    ButtonRandomOff,
-    ButtonRandomOn,
-    ButtonAutomodellingOff,
-    ButtonAutomodellingOn,
-    ButtonRestPoseOff,
-    ButtonRestPoseOn,
-    ButtonPoseOff,
-    ButtonStoreBaseBodyVertices,
-    ButtonSaveWorkInProgress,
-    FinalizeMorph,
-    SaveBodyAsIs,
-    LoadBaseBody,
-    LoadSculptedBody,
-    ButtonAssetsOn,
-    ButtonAssetsOff,
-    ButtonPoseOn,
-    ButtonSkinOff,
-    ButtonSkinOn,
-    ButtonViewOptOff,
-    ButtonViewOptOn,
-    ButtonProxyFitOff,
-    ButtonProxyFitOn,
-    ButtonFilesOff,
-    ButtonFilesOn,
-    ButtonFinalizeOff,
-    ButtonFinalizeOn,
-    ButtonLibraryOff,
-    ButtonLibraryOn,
-    ButtonFinalizedCorrectRot,
-    ButtonSaveBvhAdjustments,
-    ButtonLoadBvhAdjusments,
-    UpdateSkinDisplacement,
-    DisableSubdivision,
-    EnableSubdivision,
-    DisableSmooth,
-    EnableSmooth,
-    DisableDisplacement,
-    EnableDisplacement,
-    FinalizeCharacterAndImages,
-    FinalizeCharacter,
-    ResetParameters,
-    ResetExpressions,
-    InsertExpressionKeyframe,
-    Reset_category,
-    CharacterGenerator,
-    ExpDisplacementImage,
-    ExpDermalImage,
-    ExpAllImages,
-    ExpCharacter,
-    ExpMeasures,
-    ImpCharacter,
-    ImpMeasures,
-    LoadDermImage,
-    LoadDispImage,
-    FitProxy,
-    RemoveProxy,
-    ApplyMeasures,
-    AutoModelling,
-    AutoModellingMix,
-    SaveRestPose,
-    LoadRestPose,
-    SavePose,
-    LoadPose,
-    ResetPose,
-    LoadBvh,
-    StartSession,
-    CreateFaceRig,
-    DeleteFaceRig,
-    LoadTemplate,
-    preferences.MBPreferences,
-    VIEW3D_PT_tools_MBLAB,
-    OBJECT_OT_humanoid_rot_limits,
-    OBJECT_OT_delete_rotations,
-    OBJECT_OT_particle_hair,
-    OBJECT_OT_manual_hair,
-    OBJECT_OT_change_hair_color,
-    OBJECT_OT_add_color_preset,
-    OBJECT_OT_remove_color_preset,
-    OBJECT_OT_undo_remove_color,
-    ButtonForTest,
-    ButtonAdaptationToolsON,
-    ButtonAdaptationToolsOFF,
-    ButtonCompatToolsON,
-    ButtonCompatToolsOFF,
-    ButtonInitCompatON,
-    ButtonInitCompatOFF,
-    ButtonInitCompat,
-    ButtonCompatToolsDir,
-    ButtonCreateConfig,
-    ButtonLoadConfig,
-    ButtonLoadBlend,
-    FinalizeExpression,
-    FinalizeCombExpression,
-    FinalizePhenotype,
-    FinalizePreset,
-    ButtonUpdateCombMorphs,
-    FinalizeCombMorph,
-    ButtonTransforSave,
-    ButtonTransforLoad,
-    ButtonCurrentModelTransforSave,
-    CheckTransformationFile,
-    LoadTransformationFile,
-    ButtonRescanMorphFiles,
-    ButtonBackupMorphFile,
-    ButtonCopyMorphs,
-    ButtonMoveMorphs,
-    ButtonDeleteMorphs,
-    ButtonRenameMorphs,
-    Reset_expression_category,
-    ImpExpression,
-    VIEW3D_PT_tools_MBCrea,
-    ButtonDeleteTemplate,
-    ButtonSaveConfig,
-    ButtonSaveTemplate,
-    ButtonCreatePolygs,
-    ButtonCreatePolygsGo,
-    ButtonCreatePolygsCancel,
-    ButtonDelTemplateContent,
-    ButtonDeleteCharacter,
-    ButtonDelCharaContent,
-    ButtonSaveCharacter,
-    ButtonSaveCharaVertices,
-    ButtonSelect,
-    ButtonCreateMeasuresFile,
-    ButtonSaveMeasuresFile,
-    ButtonMeasuresInconsistancies,
-    ButtonMeasuresPrevious,
-    ButtonMeasuresCurrent,
-    ButtonMeasuresNext,
-    ButtonMeasuresAdd,
-    ButtonMeasuresAdd2Points,
-    ButtonMeasuresRemoveLast,
-    ButtonMeasuresRemoveSelected,
-    ButtonMeasuresRemoveAll,
-    ButtonMeasuresRecoverPoints,
-    ButtonMeasuresSaveWeights,
-    ButtonCreateMorphFile,
-    ButtonMorphsInconsistancies,
-    ButtonCreateJointsBaseFile,
-    ButtonJointsPrevious,
-    ButtonJointsCurrent,
-    ButtonJointsNext,
-    ButtonJointsAdd,
-    ButtonJointsRemoveLast,
-    ButtonJointsRemoveSelected,
-    ButtonJointsRemoveAll,
-    ButtonJointsRecoverPoints,
-    ButtonSaveJointsFile,
-    ButtonCreateJointsOffsetFile,
-    ButtonSaveOffsetFile,
-    ButtonCreateOffsetPoint,
-    ButtonDeleteOffsetPoint,
-    ButtonRecoverOffsetPoint,
-    ButtonSaveOffsetPoint,
-    ButtonCreateVGroupsBaseFile,
-    ButtonCreateVGroupsMusclesFile,
-    ButtonSaveVGroupsBaseFile,
-    ButtonSaveVGroupsMuscleFile
-)
+# classes = (
+#     ButtonParametersOff,
+#     ButtonParametersOn,
+#     ButtonFaceRigOff,
+#     ButtonFaceRigOn,
+#     ButtonUtilitiesOff,
+#     ButtonUtilitiesOn,
+#     ButtonExpressionsOff,
+#     ButtonExpressionOn,
+#     ButtonRandomOff,
+#     ButtonRandomOn,
+#     ButtonAutomodellingOff,
+#     ButtonAutomodellingOn,
+#     ButtonRestPoseOff,
+#     ButtonRestPoseOn,
+#     ButtonPoseOff,
+#     ButtonStoreBaseBodyVertices,
+#     ButtonSaveWorkInProgress,
+#     FinalizeMorph,
+#     SaveBodyAsIs,
+#     LoadBaseBody,
+#     LoadSculptedBody,
+#     ButtonAssetsOn,
+#     ButtonAssetsOff,
+#     ButtonPoseOn,
+#     ButtonSkinOff,
+#     ButtonSkinOn,
+#     ButtonViewOptOff,
+#     ButtonViewOptOn,
+#     ButtonProxyFitOff,
+#     ButtonProxyFitOn,
+#     ButtonFilesOff,
+#     ButtonFilesOn,
+#     ButtonFinalizeOff,
+#     ButtonFinalizeOn,
+#     ButtonLibraryOff,
+#     ButtonLibraryOn,
+#     ButtonFinalizedCorrectRot,
+#     ButtonSaveBvhAdjustments,
+#     ButtonLoadBvhAdjusments,
+#     UpdateSkinDisplacement,
+#     DisableSubdivision,
+#     EnableSubdivision,
+#     DisableSmooth,
+#     EnableSmooth,
+#     DisableDisplacement,
+#     EnableDisplacement,
+#     FinalizeCharacterAndImages,
+#     FinalizeCharacter,
+#     ResetParameters,
+#     ResetExpressions,
+#     InsertExpressionKeyframe,
+#     Reset_category,
+#     CharacterGenerator,
+#     ExpDisplacementImage,
+#     ExpDermalImage,
+#     ExpAllImages,
+#     ExpCharacter,
+#     ExpMeasures,
+#     ImpCharacter,
+#     ImpMeasures,
+#     LoadDermImage,
+#     LoadDispImage,
+#     FitProxy,
+#     RemoveProxy,
+#     ApplyMeasures,
+#     AutoModelling,
+#     AutoModellingMix,
+#     SaveRestPose,
+#     LoadRestPose,
+#     SavePose,
+#     LoadPose,
+#     ResetPose,
+#     LoadBvh,
+#     StartSession,
+#     CreateFaceRig,
+#     DeleteFaceRig,
+#     LoadTemplate,
+#     preferences.MBPreferences,
+#     VIEW3D_PT_tools_MBLAB,
+#     OBJECT_OT_humanoid_rot_limits,
+#     OBJECT_OT_delete_rotations,
+#     OBJECT_OT_particle_hair,
+#     OBJECT_OT_manual_hair,
+#     OBJECT_OT_change_hair_color,
+#     OBJECT_OT_add_color_preset,
+#     OBJECT_OT_remove_color_preset,
+#     OBJECT_OT_undo_remove_color,
+#     ButtonForTest,
+#     ButtonAdaptationToolsON,
+#     ButtonAdaptationToolsOFF,
+#     ButtonCompatToolsON,
+#     ButtonCompatToolsOFF,
+#     ButtonInitCompatON,
+#     ButtonInitCompatOFF,
+#     ButtonInitCompat,
+#     ButtonCompatToolsDir,
+#     ButtonCreateConfig,
+#     ButtonLoadConfig,
+#     ButtonLoadBlend,
+#     FinalizeExpression,
+#     FinalizeCombExpression,
+#     FinalizePhenotype,
+#     FinalizePreset,
+#     ButtonUpdateCombMorphs,
+#     FinalizeCombMorph,
+#     ButtonTransforSave,
+#     ButtonTransforLoad,
+#     ButtonCurrentModelTransforSave,
+#     CheckTransformationFile,
+#     LoadTransformationFile,
+#     ButtonRescanMorphFiles,
+#     ButtonBackupMorphFile,
+#     ButtonCopyMorphs,
+#     ButtonMoveMorphs,
+#     ButtonDeleteMorphs,
+#     ButtonRenameMorphs,
+#     Reset_expression_category,
+#     ImpExpression,
+#     VIEW3D_PT_tools_MBCrea,
+#     ButtonDeleteTemplate,
+#     ButtonSaveConfig,
+#     ButtonSaveTemplate,
+#     ButtonCreatePolygs,
+#     ButtonCreatePolygsGo,
+#     ButtonCreatePolygsCancel,
+#     ButtonDelTemplateContent,
+#     ButtonDeleteCharacter,
+#     ButtonDelCharaContent,
+#     ButtonSaveCharacter,
+#     ButtonSaveCharaVertices,
+#     ButtonSelect,
+#     ButtonCreateMeasuresFile,
+#     ButtonSaveMeasuresFile,
+#     ButtonMeasuresInconsistancies,
+#     ButtonMeasuresPrevious,
+#     ButtonMeasuresCurrent,
+#     ButtonMeasuresNext,
+#     ButtonMeasuresAdd,
+#     ButtonMeasuresAdd2Points,
+#     ButtonMeasuresRemoveLast,
+#     ButtonMeasuresRemoveSelected,
+#     ButtonMeasuresRemoveAll,
+#     ButtonMeasuresRecoverPoints,
+#     ButtonMeasuresSaveWeights,
+#     ButtonCreateMorphFile,
+#     ButtonMorphsInconsistancies,
+#     ButtonCreateJointsBaseFile,
+#     ButtonJointsPrevious,
+#     ButtonJointsCurrent,
+#     ButtonJointsNext,
+#     ButtonJointsAdd,
+#     ButtonJointsRemoveLast,
+#     ButtonJointsRemoveSelected,
+#     ButtonJointsRemoveAll,
+#     ButtonJointsRecoverPoints,
+#     ButtonSaveJointsFile,
+#     ButtonCreateJointsOffsetFile,
+#     ButtonSaveOffsetFile,
+#     ButtonCreateOffsetPoint,
+#     ButtonDeleteOffsetPoint,
+#     ButtonRecoverOffsetPoint,
+#     ButtonSaveOffsetPoint,
+#     ButtonCreateVGroupsBaseFile,
+#     ButtonCreateVGroupsMusclesFile,
+#     ButtonSaveVGroupsBaseFile,
+#     ButtonSaveVGroupsMuscleFile
+# )
 
-def register():
-    # addon updater code and configurations
-    # in case of broken version, try to register the updater first
-    # so that users can revert back to a working version
-    addon_updater_ops.register(bl_info)
+# def register():
+#     # addon updater code and configurations
+#     # in case of broken version, try to register the updater first
+#     # so that users can revert back to a working version
+#     addon_updater_ops.register(bl_info)
 
-    # register the example panel, to show updater buttons
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-
-def unregister():
-    # addon updater unregister
-    addon_updater_ops.unregister()
-
-    # register the example panel, to show updater buttons
-    for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
+#     # register the example panel, to show updater buttons
+#     for cls in classes:
+#         bpy.utils.register_class(cls)
 
 
-if __name__ == "__main__":
-    register()
+# def unregister():
+#     # addon updater unregister
+#     addon_updater_ops.unregister()
 
-# <pep8 compliant>
+#     # register the example panel, to show updater buttons
+#     for cls in reversed(classes):
+#         bpy.utils.unregister_class(cls)
+
+
+# if __name__ == "__main__":
+#     register()
+
+# # <pep8 compliant>

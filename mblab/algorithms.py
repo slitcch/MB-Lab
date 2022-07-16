@@ -79,7 +79,7 @@ def full_dist(vert1, vert2, axis="ALL"):
     # if axis == "Z":
     return abs(v1[2]-v2[2])
 
-
+# Maybe calculates the total length of a bunch of edges?
 def length_of_strip(vertices_coords, indices, axis="ALL"):
     strip_length = 0
     for x in range(len(indices)-1):
@@ -1113,15 +1113,15 @@ def swap_material(old_mat_name, new_mat_name, char_name):
 
 def remove_censors():
 
-    my_prefs = bpy.context.preferences.addons.get(__package__, None)
-    if (not my_prefs.preferences.use_censors):
-        is_char = looking_for_humanoid_obj()
-        if is_char[0] == "FOUND":
-            char_name = is_char[1]
-            if char_name in("f_an01","f_an02","m_an01","m_an02"):
-                swap_material("MBlab_generic", "MBLab_anime_skin",char_name)
-            else:
-                swap_material("MBlab_generic", "MBLab_skin2",char_name)
+    # my_prefs = bpy.context.preferences.addons.get(__package__, None)
+    # if (not my_prefs.preferences.use_censors):
+    #     is_char = looking_for_humanoid_obj()
+    #     if is_char[0] == "FOUND":
+    #         char_name = is_char[1]
+    #         if char_name in("f_an01","f_an02","m_an01","m_an02"):
+    #             swap_material("MBlab_generic", "MBLab_anime_skin",char_name)
+    #         else:
+    #             swap_material("MBlab_generic", "MBLab_skin2",char_name)
 
 
     return None

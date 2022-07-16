@@ -65,7 +65,8 @@ class SkeletonEngine:
                 self.skeleton_template_name = "MBLab_skeleton_muscle_ik"
                 self.groups_filename = character_config["vertexgroup_muscle_file"]
 
-            skeleton_name = character_config["name"]+"_skeleton"
+            # skeleton_name = character_config["name"]+"_skeleton"
+            skeleton_name = "doot doot"
             joints_data_path = os.path.join(self.data_path, "joints", self.joints_filename)
             joints_offset_data_path = os.path.join(self.data_path, "joints", self.joints_offset_filename)
             vgroup_data_path = os.path.join(self.data_path, "vgroups", self.groups_filename)
@@ -77,6 +78,7 @@ class SkeletonEngine:
             if self.check_skeleton(obj_body):
                 obj_armat = get_object_parent(obj_body)
             else:
+                print(f"What? {self.lib_filepath, self.skeleton_template_name, skeleton_name}")
                 obj_armat = file_ops.import_object_from_lib(
                     self.lib_filepath, self.skeleton_template_name, skeleton_name)
 
@@ -101,7 +103,7 @@ class SkeletonEngine:
         if self.has_data:
             obj = self.get_body()
             armat = self.get_armature()
-            parameters = {"object": armat}
+            parameters = {"object": armat, "use_deform_preserve_volume": True}
             object_ops.new_modifier(obj, self.armature_modifier_name, 'ARMATURE', parameters)
 
     def move_up_armature_modifier(self):
